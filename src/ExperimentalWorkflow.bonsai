@@ -8,6 +8,7 @@
                  xmlns:dsp="clr-namespace:Bonsai.Dsp;assembly=Bonsai.Dsp"
                  xmlns:al="clr-namespace:Bonsai.Audio;assembly=Bonsai.Audio"
                  xmlns:spk="clr-namespace:Bonsai.Spinnaker;assembly=Bonsai.Spinnaker"
+                 xmlns:io="clr-namespace:Bonsai.IO;assembly=Bonsai.System"
                  xmlns="https://bonsai-rx.org/2018/workflow">
   <Workflow>
     <Nodes>
@@ -22,7 +23,7 @@
           <harp:VisualIndicators>On</harp:VisualIndicators>
           <harp:Heartbeat>Disabled</harp:Heartbeat>
           <harp:IgnoreErrors>false</harp:IgnoreErrors>
-          <harp:PortName>COM10</harp:PortName>
+          <harp:PortName>COM9</harp:PortName>
         </Combinator>
       </Expression>
       <Expression xsi:type="rx:PublishSubject">
@@ -193,7 +194,7 @@
       <Expression xsi:type="beh:CreateMessage">
         <harp:Payload xsi:type="beh:CreatePwmDutyCycleDO3Payload">
           <harp:MessageType>Write</harp:MessageType>
-          <beh:Value>80</beh:Value>
+          <beh:Value>30</beh:Value>
         </harp:Payload>
       </Expression>
       <Expression xsi:type="MulticastSubject">
@@ -229,17 +230,82 @@
       <Expression xsi:type="MulticastSubject">
         <Name>BoardCommands</Name>
       </Expression>
+      <Expression xsi:type="Disable">
+        <Builder xsi:type="Combinator">
+          <Combinator xsi:type="spk:SpinnakerCapture">
+            <spk:Index xsi:nil="true" />
+            <spk:ColorProcessing>Default</spk:ColorProcessing>
+          </Combinator>
+        </Builder>
+      </Expression>
+      <Expression xsi:type="Disable">
+        <Builder xsi:type="MemberSelector">
+          <Selector>Image</Selector>
+        </Builder>
+      </Expression>
+      <Expression xsi:type="Disable">
+        <Builder xsi:type="MemberSelector">
+          <Selector>ChunkData.FrameID</Selector>
+        </Builder>
+      </Expression>
       <Expression xsi:type="Combinator">
-        <Combinator xsi:type="spk:SpinnakerCapture">
-          <spk:Index xsi:nil="true" />
-          <spk:ColorProcessing>Default</spk:ColorProcessing>
+        <Combinator xsi:type="io:CreateSerialPort">
+          <io:Name>MyWheel</io:Name>
+          <io:PortName>COM12</io:PortName>
+          <io:BaudRate>9600</io:BaudRate>
+          <io:Parity>None</io:Parity>
+          <io:ParityReplace>63</io:ParityReplace>
+          <io:DataBits>8</io:DataBits>
+          <io:StopBits>One</io:StopBits>
+          <io:Handshake>None</io:Handshake>
+          <io:DiscardNull>false</io:DiscardNull>
+          <io:DtrEnable>false</io:DtrEnable>
+          <io:RtsEnable>false</io:RtsEnable>
+          <io:ReadBufferSize>4096</io:ReadBufferSize>
+          <io:WriteBufferSize>2048</io:WriteBufferSize>
+          <io:ReceivedBytesThreshold>1</io:ReceivedBytesThreshold>
         </Combinator>
       </Expression>
-      <Expression xsi:type="MemberSelector">
-        <Selector>Image</Selector>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="StringProperty">
+          <Value>A</Value>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="io:SerialStringWrite">
+          <io:PortName>MyWheel</io:PortName>
+          <io:NewLine>\r\n</io:NewLine>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="io:SerialStringRead">
+          <io:PortName>MyWheel</io:PortName>
+          <io:NewLine>\r\n</io:NewLine>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="rx:DelaySubscription">
+          <rx:DueTime>PT0.5S</rx:DueTime>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Parse">
+        <Pattern>%f</Pattern>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="rx:Retry" />
+      </Expression>
+      <Expression xsi:type="SubscribeSubject">
+        <Name>BoardEvents</Name>
+      </Expression>
+      <Expression xsi:type="beh:Parse">
+        <harp:MessageType>Event</harp:MessageType>
+        <harp:Register xsi:type="beh:TimestampedAnalogData" />
       </Expression>
       <Expression xsi:type="MemberSelector">
-        <Selector>ChunkData.FrameID</Selector>
+        <Selector>Seconds</Selector>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="rx:WithLatestFrom" />
       </Expression>
     </Nodes>
     <Edges>
@@ -272,6 +338,14 @@
       <Edge From="38" To="39" Label="Source1" />
       <Edge From="40" To="41" Label="Source1" />
       <Edge From="40" To="42" Label="Source1" />
+      <Edge From="44" To="45" Label="Source1" />
+      <Edge From="46" To="47" Label="Source1" />
+      <Edge From="47" To="48" Label="Source1" />
+      <Edge From="48" To="49" Label="Source1" />
+      <Edge From="49" To="53" Label="Source1" />
+      <Edge From="50" To="51" Label="Source1" />
+      <Edge From="51" To="52" Label="Source1" />
+      <Edge From="52" To="53" Label="Source2" />
     </Edges>
   </Workflow>
 </WorkflowBuilder>
