@@ -42,10 +42,11 @@ void setup() {
 
 	//init AMS_AS5048B object
 	mysensor.begin();
+  angle = mysensor.angleR(U_DEG, true);
 
+  while (!Serial.available()){}
 	//consider the current position as zero
 	//mysensor.setZeroReg();
-  angle = mysensor.angleR(U_DEG, true);
 
 }
 
@@ -58,7 +59,7 @@ void loop() {
   if (abs(velocity) > 180.0)
   {
     if (velocity > 0.0)
-      velocity =  velocity -360;
+      velocity =  velocity - 360;
     else
       velocity = 360 + velocity;
   }
